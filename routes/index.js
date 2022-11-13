@@ -3,6 +3,7 @@ var router = express.Router();
 
 var PostModel = require("../models/documentCheck");
 var CheckModel = require("../models/check");
+const { use } = require("express/lib/application");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -11,17 +12,17 @@ router.get("/", function (req, res, next) {
   });
 });
 
-router.post("/newDoc", async function (req, res, next) {
-  var new_check = new CheckModel({
-    name: "req.body.name",
-    value: "req.body.value",
-  });
+///New Check
 
-  var check_save = await new_check.save();
+router.post("/newDoc", async function (req, res, next) {
+  let user_len = await PostModel.find({});
 
   var new_user = new PostModel({
-    check: new_check,
-    hash: "req.body.hash",
+    _id: user_len.length + 1,
+    name: req.body.name,
+    value: req.body.value,
+    hash: req.body.hash,
+    address: req.body.address,
   });
 
   const result = await new_user.save();
@@ -31,10 +32,30 @@ router.post("/newDoc", async function (req, res, next) {
   });
 });
 
+/// Get personal checks
+
+router.post("/getchecks", async (req, res, next) => {
+  console.log("ADDRESS:  ", req.body.addr);
+  console.log(req.body);
+  var checks = await PostModel.find({ address: req.body.addr });
+
+  res.json({
+    checks: checks,
+  });
+});
+
+/// Get Checks
+
 router.get("/getdocs", async (req, res, next) => {
   var allUsers = await PostModel.find({});
+
+  var user = allUsers.at(15);
+
+  var check = await CheckModel.findById(user.check);
+
   res.json({
-    asllUsers: allUsers,
+    hash: user,
+    check: check,
   });
 });
 
